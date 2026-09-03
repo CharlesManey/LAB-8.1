@@ -46,12 +46,6 @@ function App() {
 	}, [activeDeckId])
 
 	useEffect(() => {
-		if (activeDeckId && !decks.some((deck) => deck.id === activeDeckId)) {
-			setActiveDeckId(decks[0]?.id ?? null)
-		}
-	}, [activeDeckId, decks])
-
-	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (view !== 'study' || !studyCard) return
 			if (event.key === ' ' || event.key === 'Enter') {
@@ -176,7 +170,7 @@ function App() {
 					</button>
 					<nav aria-label="Primary navigation" className="flex items-center gap-2 rounded-full bg-[#edf3ef] p-1 text-sm font-semibold">
 						<button className={`rounded-full px-4 py-2 ${view === 'library' ? 'bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => setView('library')}>Library</button>
-						<button className={`rounded-full px-4 py-2 ${view === 'study' ? 'bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => setView('study')} disabled={!activeDeck?.cards.length}>Study</button>
+						<button className={`rounded-full px-4 py-2 ${view === 'study' ? 'bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => startStudy()} disabled={!activeDeck?.cards.length}>Study</button>
 					</nav>
 				</div>
 			</header>
