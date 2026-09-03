@@ -36,7 +36,8 @@ textarea:focus-visible {
 	*::before,
 	*::after {
 		scroll-behavior: auto !important;
-		transition-duration: 0.01ms !important;
+		transition-duration: 180ms !important;
+		transition-timing-function: linear !important;
 		animation-duration: 0.01ms !important;
 	}
 }
