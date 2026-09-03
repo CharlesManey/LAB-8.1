@@ -29,6 +29,7 @@ function App() {
 	const [studyCardIds, setStudyCardIds] = useState<string[]>([])
 	const [studyIndex, setStudyIndex] = useState(0)
 	const [isRevealed, setIsRevealed] = useState(false)
+	const [studyBoundaryMessage, setStudyBoundaryMessage] = useState('')
 	const [isDarkTheme, setIsDarkTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) === 'dark')
 	const modalRef = useRef<HTMLFormElement>(null)
 	const previouslyFocusedElement = useRef<HTMLElement | null>(null)
@@ -41,11 +42,11 @@ function App() {
 		return activeDeck.cards.filter((card) => `${card.front} ${card.back}`.toLowerCase().includes(query))
 	}, [activeDeck, search])
 	const studyCard = activeDeck?.cards.find((card) => card.id === studyCardIds[studyIndex]) ?? null
-	const studyState = useRef({ view, studyCard, studyCardCount: studyCardIds.length })
+	const studyState = useRef({ view, studyCard, studyCardCount: studyCardIds.length, studyIndex })
 
 	useEffect(() => {
-		studyState.current = { view, studyCard, studyCardCount: studyCardIds.length }
-	}, [studyCard, studyCardIds.length, view])
+		studyState.current = { view, studyCard, studyCardCount: studyCardIds.length, studyIndex }
+	}, [studyCard, studyCardIds.length, studyIndex, view])
 
 	useEffect(() => {
 		if (view !== 'study' || !studyCard) return
@@ -74,13 +75,23 @@ function App() {
 			if (currentStudy.view !== 'study' || !currentStudy.studyCard) return
 			if (event.key === 'ArrowRight') {
 				event.preventDefault()
-				setStudyIndex((index) => Math.min(currentStudy.studyCardCount - 1, index + 1))
+				if (currentStudy.studyIndex === currentStudy.studyCardCount - 1) {
+					setStudyBoundaryMessage('You are at the end of this deck.')
+					return
+				}
+				setStudyIndex((index) => index + 1)
 				setIsRevealed(false)
+				setStudyBoundaryMessage('')
 			}
 			if (event.key === 'ArrowLeft') {
 				event.preventDefault()
-				setStudyIndex((index) => Math.max(0, index - 1))
+				if (currentStudy.studyIndex === 0) {
+					setStudyBoundaryMessage('You are at the beginning of this deck.')
+					return
+				}
+				setStudyIndex((index) => index - 1)
 				setIsRevealed(false)
+				setStudyBoundaryMessage('')
 			}
 		}
 		window.addEventListener('keydown', onStudyKeyDown)
@@ -224,15 +235,27 @@ function App() {
 		setStudyCardIds(ids)
 		setStudyIndex(0)
 		setIsRevealed(false)
+		setStudyBoundaryMessage('')
 		setView('study')
 	}
 
 	function moveStudy(direction: number) {
-		setStudyIndex((index) => Math.max(0, Math.min(studyCardIds.length - 1, index + direction)))
+		if (direction < 0 && studyIndex === 0) {
+			setStudyBoundaryMessage('You are at the beginning of this deck.')
+			return
+		}
+		if (direction > 0 && studyIndex === studyCardIds.length - 1) {
+			setStudyBoundaryMessage('You are at the end of this deck.')
+			return
+		}
+		setStudyIndex((index) => index + direction)
 		setIsRevealed(false)
+		setStudyBoundaryMessage('')
 	}
 
-	const progress = studyCardIds.length ? `${studyIndex + 1} / ${studyCardIds.length}` : '0 / 0'
+	const progress = studyCardIds.length
+		? `${studyIndex + 1} / ${studyCardIds.length}${studyBoundaryMessage ? ` · ${studyBoundaryMessage}` : ''}`
+		: '0 / 0'
 
 	return (
 		<div className={`app-shell min-h-screen bg-[#f4f7f5] text-[#17232b] ${isDarkTheme ? 'dark-theme' : ''}`}>
