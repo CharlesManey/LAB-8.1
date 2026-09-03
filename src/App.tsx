@@ -137,10 +137,14 @@ function App() {
 	}
 
 	const selectDeck = (deckId: string) => {
+		const selectedDeck = decks.find((deck) => deck.id === deckId)
 		setActiveDeckId(deckId)
-		setView('library')
 		setSearch('')
 		setIsRevealed(false)
+		if (view === 'study') {
+			setStudyCardIds(selectedDeck?.cards.map((card) => card.id) ?? [])
+			setStudyIndex(0)
+		}
 	}
 
 	const openNewDeck = () => {
