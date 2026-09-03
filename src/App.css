@@ -49,6 +49,63 @@
 	transform: rotateY(180deg);
 }
 
+.theme-toggle {
+	min-width: 2.5rem;
+	line-height: 1;
+	transition: background-color 180ms ease, color 180ms ease;
+}
+
+.dark-theme {
+	background-color: #101d20 !important;
+	color: #e7efeb !important;
+}
+
+.dark-theme header,
+.dark-theme [class*="bg-[#fbfdfb"],
+.dark-theme [class*="bg-white"],
+.dark-theme [class*="bg-[#edf3ef"] {
+	background-color: #172a2e !important;
+}
+
+.dark-theme [class*="bg-[#f4f7f5"] {
+	background-color: #101d20 !important;
+}
+
+.dark-theme [class*="text-[#17232b"] {
+	color: #e7efeb !important;
+}
+
+.dark-theme [class*="text-[#153e42"],
+.dark-theme [class*="text-[#52716d"],
+.dark-theme [class*="text-[#71807c"],
+.dark-theme [class*="text-[#6f7e7b"],
+.dark-theme [class*="text-[#9aa9a4"] {
+	color: #b7cbc3 !important;
+}
+
+.dark-theme [class*="border-[#dbe5df"],
+.dark-theme [class*="border-[#c9d8d0"],
+.dark-theme [class*="border-[#b9ccc3"] {
+	border-color: #3b565d !important;
+}
+
+.dark-theme input,
+.dark-theme textarea {
+	background-color: #172a2e !important;
+	border-color: #46636a !important;
+	color: #e7efeb !important;
+}
+
+.dark-theme input::placeholder,
+.dark-theme textarea::placeholder {
+	color: #8da39c;
+}
+
+.dark-theme .theme-toggle {
+	background-color: #f7c873;
+	color: #17232b;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.flashcard-inner {
 		transition-duration: 180ms;

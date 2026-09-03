@@ -8,6 +8,7 @@ type CardDraft = { front: string; back: string }
 
 const emptyDeckDraft: DeckDraft = { name: '', description: '' }
 const emptyCardDraft: CardDraft = { front: '', back: '' }
+const THEME_STORAGE_KEY = 'flashcards-theme'
 
 const initialDecks = loadDecks()
 
@@ -28,6 +29,7 @@ function App() {
 	const [studyCardIds, setStudyCardIds] = useState<string[]>([])
 	const [studyIndex, setStudyIndex] = useState(0)
 	const [isRevealed, setIsRevealed] = useState(false)
+	const [isDarkTheme, setIsDarkTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) === 'dark')
 	const modalRef = useRef<HTMLFormElement>(null)
 	const previouslyFocusedElement = useRef<HTMLElement | null>(null)
 
@@ -52,6 +54,11 @@ function App() {
 	useEffect(() => {
 		saveActiveDeckId(activeDeckId)
 	}, [activeDeckId])
+
+	useEffect(() => {
+		localStorage.setItem(THEME_STORAGE_KEY, isDarkTheme ? 'dark' : 'light')
+		document.documentElement.style.colorScheme = isDarkTheme ? 'dark' : 'light'
+	}, [isDarkTheme])
 
 	useEffect(() => {
 		const onStudyKeyDown = (event: KeyboardEvent) => {
@@ -221,7 +228,7 @@ function App() {
 	const progress = studyCardIds.length ? `${studyIndex + 1} / ${studyCardIds.length}` : '0 / 0'
 
 	return (
-		<div className="min-h-screen bg-[#f4f7f5] text-[#17232b]">
+		<div className={`app-shell min-h-screen bg-[#f4f7f5] text-[#17232b] ${isDarkTheme ? 'dark-theme' : ''}`}>
 			<header className="border-b border-[#dbe5df] bg-[#fbfdfb]">
 				<div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-10">
 					<button className="flex items-center gap-3 text-left" onClick={() => setView('library')} aria-label="Go to library">
@@ -231,6 +238,7 @@ function App() {
 					<nav aria-label="Primary navigation" className="flex items-center gap-2 rounded-full bg-[#edf3ef] p-1 text-sm font-semibold">
 						<button className={`rounded-full px-4 py-2 ${view === 'library' ? 'bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => setView('library')}>Library</button>
 						<button className={`rounded-full px-4 py-2 ${view === 'study' ? 'bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => startStudy()} disabled={!activeDeck?.cards.length}>Study</button>
+						<button className="theme-toggle rounded-full px-3 py-2 text-base" type="button" aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={isDarkTheme} onClick={() => setIsDarkTheme((isDark) => !isDark)}>{isDarkTheme ? '☀' : '☾'}</button>
 					</nav>
 				</div>
 			</header>
