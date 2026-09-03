@@ -55,6 +55,20 @@
 	transition: background-color 180ms ease, color 180ms ease;
 }
 
+.app-shell [class*="text-[#d2831d"] {
+	color: #925b0b !important;
+}
+
+.app-shell [class*="text-[#71807c"],
+.app-shell [class*="text-[#6f7e7b"],
+.app-shell [class*="text-[#9aa9a4"] {
+	color: #52635e !important;
+}
+
+.dark-theme [class*="text-[#d2831d"] {
+	color: #f7c873 !important;
+}
+
 .dark-theme {
 	background-color: #101d20 !important;
 	color: #e7efeb !important;

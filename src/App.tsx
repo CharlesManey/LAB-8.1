@@ -10,6 +10,14 @@ const emptyDeckDraft: DeckDraft = { name: '', description: '' }
 const emptyCardDraft: CardDraft = { front: '', back: '' }
 const THEME_STORAGE_KEY = 'flashcards-theme'
 
+const loadDarkTheme = () => {
+	try {
+		return localStorage.getItem(THEME_STORAGE_KEY) === 'dark'
+	} catch {
+		return false
+	}
+}
+
 const initialDecks = loadDecks()
 
 function App() {
@@ -30,7 +38,7 @@ function App() {
 	const [studyIndex, setStudyIndex] = useState(0)
 	const [isRevealed, setIsRevealed] = useState(false)
 	const [studyBoundaryMessage, setStudyBoundaryMessage] = useState('')
-	const [isDarkTheme, setIsDarkTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) === 'dark')
+	const [isDarkTheme, setIsDarkTheme] = useState(loadDarkTheme)
 	const modalRef = useRef<HTMLFormElement>(null)
 	const previouslyFocusedElement = useRef<HTMLElement | null>(null)
 
@@ -65,7 +73,11 @@ function App() {
 	}, [activeDeckId])
 
 	useEffect(() => {
-		localStorage.setItem(THEME_STORAGE_KEY, isDarkTheme ? 'dark' : 'light')
+		try {
+			localStorage.setItem(THEME_STORAGE_KEY, isDarkTheme ? 'dark' : 'light')
+		} catch (error) {
+			void error
+		}
 		document.documentElement.style.colorScheme = isDarkTheme ? 'dark' : 'light'
 	}, [isDarkTheme])
 

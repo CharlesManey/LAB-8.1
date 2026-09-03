@@ -35,12 +35,26 @@ export const loadDecks = (): Deck[] => {
 }
 
 export const saveDecks = (decks: Deck[]) => {
-  localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks))
+  try {
+    localStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(decks))
+  } catch (error) {
+    void error
+  }
 }
 
-export const loadActiveDeckId = () => localStorage.getItem(ACTIVE_DECK_STORAGE_KEY)
+export const loadActiveDeckId = () => {
+  try {
+    return localStorage.getItem(ACTIVE_DECK_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
 
 export const saveActiveDeckId = (deckId: string | null) => {
-  if (deckId) localStorage.setItem(ACTIVE_DECK_STORAGE_KEY, deckId)
-  else localStorage.removeItem(ACTIVE_DECK_STORAGE_KEY)
+  try {
+    if (deckId) localStorage.setItem(ACTIVE_DECK_STORAGE_KEY, deckId)
+    else localStorage.removeItem(ACTIVE_DECK_STORAGE_KEY)
+  } catch (error) {
+    void error
+  }
 }
