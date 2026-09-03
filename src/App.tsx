@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AppView, Card, Deck } from './types'
 import { createId, loadActiveDeckId, loadDecks, saveActiveDeckId, saveDecks } from './storage'
 
@@ -27,6 +27,8 @@ function App() {
 	const [studyCardIds, setStudyCardIds] = useState<string[]>([])
 	const [studyIndex, setStudyIndex] = useState(0)
 	const [isRevealed, setIsRevealed] = useState(false)
+	const modalRef = useRef<HTMLFormElement>(null)
+	const previouslyFocusedElement = useRef<HTMLElement | null>(null)
 
 	const activeDeck = decks.find((deck) => deck.id === activeDeckId) ?? null
 	const filteredCards = useMemo(() => {
@@ -36,6 +38,11 @@ function App() {
 		return activeDeck.cards.filter((card) => `${card.front} ${card.back}`.toLowerCase().includes(query))
 	}, [activeDeck, search])
 	const studyCard = activeDeck?.cards.find((card) => card.id === studyCardIds[studyIndex]) ?? null
+	const studyState = useRef({ view, studyCard, studyCardCount: studyCardIds.length })
+
+	useEffect(() => {
+		studyState.current = { view, studyCard, studyCardCount: studyCardIds.length }
+	}, [studyCard, studyCardIds.length, view])
 
 	useEffect(() => {
 		saveDecks(decks)
@@ -46,21 +53,73 @@ function App() {
 	}, [activeDeckId])
 
 	useEffect(() => {
-		const onKeyDown = (event: KeyboardEvent) => {
-			if (view !== 'study' || !studyCard) return
-			if (event.key === ' ' || event.key === 'Enter') {
-				const target = event.target as HTMLElement
-				if (target.tagName !== 'BUTTON') {
-					event.preventDefault()
-					setIsRevealed((revealed) => !revealed)
-				}
+		const onStudyKeyDown = (event: KeyboardEvent) => {
+			const currentStudy = studyState.current
+			if (currentStudy.view !== 'study' || !currentStudy.studyCard) return
+			const target = event.target as HTMLElement
+			if ((event.key === ' ' || event.key === 'Enter') && target.tagName !== 'BUTTON') {
+				event.preventDefault()
+				setIsRevealed((revealed) => !revealed)
 			}
-			if (event.key === 'ArrowRight') moveStudy(1)
-			if (event.key === 'ArrowLeft') moveStudy(-1)
+			if (event.key === 'ArrowRight') {
+				event.preventDefault()
+				setStudyIndex((index) => Math.min(currentStudy.studyCardCount - 1, index + 1))
+				setIsRevealed(false)
+			}
+			if (event.key === 'ArrowLeft') {
+				event.preventDefault()
+				setStudyIndex((index) => Math.max(0, index - 1))
+				setIsRevealed(false)
+			}
 		}
-		window.addEventListener('keydown', onKeyDown)
-		return () => window.removeEventListener('keydown', onKeyDown)
-	})
+		window.addEventListener('keydown', onStudyKeyDown)
+		return () => window.removeEventListener('keydown', onStudyKeyDown)
+	}, [])
+
+	const closeModal = () => {
+		setShowDeckForm(false)
+		setShowCardForm(false)
+	}
+
+	useEffect(() => {
+		const modalIsOpen = showDeckForm || showCardForm
+		if (!modalIsOpen) return
+
+		previouslyFocusedElement.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+		const modal = modalRef.current
+		if (!modal) return
+		const focusableSelector = 'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+		const getFocusableElements = () => Array.from(modal.querySelectorAll<HTMLElement>(focusableSelector))
+		const firstFocusableElement = getFocusableElements()[0]
+		firstFocusableElement?.focus()
+
+		const onModalKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				event.preventDefault()
+				closeModal()
+				return
+			}
+			if (event.key !== 'Tab') return
+			const focusableElements = getFocusableElements()
+			if (!focusableElements.length) return
+			const firstElement = focusableElements[0]
+			const lastElement = focusableElements[focusableElements.length - 1]
+			if (event.shiftKey && document.activeElement === firstElement) {
+				event.preventDefault()
+				lastElement.focus()
+			} else if (!event.shiftKey && document.activeElement === lastElement) {
+				event.preventDefault()
+				firstElement.focus()
+			}
+		}
+
+		modal.addEventListener('keydown', onModalKeyDown)
+		return () => {
+			modal.removeEventListener('keydown', onModalKeyDown)
+			previouslyFocusedElement.current?.focus()
+			previouslyFocusedElement.current = null
+		}
+	}, [showCardForm, showDeckForm])
 
 	const updateActiveDeck = (update: (deck: Deck) => Deck) => {
 		setDecks((current) => current.map((deck) => (deck.id === activeDeckId ? update(deck) : deck)))
@@ -196,8 +255,8 @@ function App() {
 				</section>
 			</main>
 
-			{showDeckForm && <div className="fixed inset-0 z-10 grid place-items-center bg-[#153e42]/40 p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowDeckForm(false) }}><form className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onSubmit={saveDeck}><h2 className="font-serif text-2xl font-bold text-[#153e42]">{editingDeckId ? 'Edit deck' : 'New deck'}</h2><label className="mt-6 block text-sm font-bold">Name<input autoFocus required maxLength={60} value={deckDraft.name} onChange={(event) => setDeckDraft({ ...deckDraft, name: event.target.value })} className="mt-2 w-full rounded-lg border border-[#c9d8d0] px-3 py-3" /></label><label className="mt-4 block text-sm font-bold">Description <span className="font-normal text-[#9aa9a4]">(optional)</span><textarea maxLength={160} value={deckDraft.description} onChange={(event) => setDeckDraft({ ...deckDraft, description: event.target.value })} className="mt-2 min-h-24 w-full resize-y rounded-lg border border-[#c9d8d0] px-3 py-3" /></label><div className="mt-6 flex justify-end gap-3"><button type="button" className="rounded-lg px-4 py-2 text-sm font-bold text-[#71807c]" onClick={() => setShowDeckForm(false)}>Cancel</button><button className="rounded-lg bg-[#153e42] px-5 py-2 text-sm font-bold text-white" type="submit">Save deck</button></div></form></div>}
-			{showCardForm && <div className="fixed inset-0 z-10 grid place-items-center bg-[#153e42]/40 p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowCardForm(false) }}><form className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onSubmit={saveCard}><h2 className="font-serif text-2xl font-bold text-[#153e42]">{editingCardId ? 'Edit card' : 'New card'}</h2><label className="mt-6 block text-sm font-bold">Front<input autoFocus required maxLength={300} value={cardDraft.front} onChange={(event) => setCardDraft({ ...cardDraft, front: event.target.value })} className="mt-2 w-full rounded-lg border border-[#c9d8d0] px-3 py-3" placeholder="What do you want to remember?" /></label><label className="mt-4 block text-sm font-bold">Back<textarea required maxLength={600} value={cardDraft.back} onChange={(event) => setCardDraft({ ...cardDraft, back: event.target.value })} className="mt-2 min-h-32 w-full resize-y rounded-lg border border-[#c9d8d0] px-3 py-3" placeholder="Write the answer..." /></label><div className="mt-6 flex justify-end gap-3"><button type="button" className="rounded-lg px-4 py-2 text-sm font-bold text-[#71807c]" onClick={() => setShowCardForm(false)}>Cancel</button><button className="rounded-lg bg-[#153e42] px-5 py-2 text-sm font-bold text-white" type="submit">Save card</button></div></form></div>}
+			{showDeckForm && <div className="fixed inset-0 z-10 grid place-items-center bg-[#153e42]/40 p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeModal() }}><form ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="deck-modal-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onSubmit={saveDeck}><h2 id="deck-modal-title" className="font-serif text-2xl font-bold text-[#153e42]">{editingDeckId ? 'Edit deck' : 'New deck'}</h2><label className="mt-6 block text-sm font-bold">Name<input required maxLength={60} value={deckDraft.name} onChange={(event) => setDeckDraft({ ...deckDraft, name: event.target.value })} className="mt-2 w-full rounded-lg border border-[#c9d8d0] px-3 py-3" /></label><label className="mt-4 block text-sm font-bold">Description <span className="font-normal text-[#9aa9a4]">(optional)</span><textarea maxLength={160} value={deckDraft.description} onChange={(event) => setDeckDraft({ ...deckDraft, description: event.target.value })} className="mt-2 min-h-24 w-full resize-y rounded-lg border border-[#c9d8d0] px-3 py-3" /></label><div className="mt-6 flex justify-end gap-3"><button type="button" className="rounded-lg px-4 py-2 text-sm font-bold text-[#71807c]" onClick={closeModal}>Cancel</button><button className="rounded-lg bg-[#153e42] px-5 py-2 text-sm font-bold text-white" type="submit">Save deck</button></div></form></div>}
+			{showCardForm && <div className="fixed inset-0 z-10 grid place-items-center bg-[#153e42]/40 p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeModal() }}><form ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="card-modal-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onSubmit={saveCard}><h2 id="card-modal-title" className="font-serif text-2xl font-bold text-[#153e42]">{editingCardId ? 'Edit card' : 'New card'}</h2><label className="mt-6 block text-sm font-bold">Front<input required maxLength={300} value={cardDraft.front} onChange={(event) => setCardDraft({ ...cardDraft, front: event.target.value })} className="mt-2 w-full rounded-lg border border-[#c9d8d0] px-3 py-3" placeholder="What do you want to remember?" /></label><label className="mt-4 block text-sm font-bold">Back<textarea required maxLength={600} value={cardDraft.back} onChange={(event) => setCardDraft({ ...cardDraft, back: event.target.value })} className="mt-2 min-h-32 w-full resize-y rounded-lg border border-[#c9d8d0] px-3 py-3" placeholder="Write the answer..." /></label><div className="mt-6 flex justify-end gap-3"><button type="button" className="rounded-lg px-4 py-2 text-sm font-bold text-[#71807c]" onClick={closeModal}>Cancel</button><button className="rounded-lg bg-[#153e42] px-5 py-2 text-sm font-bold text-white" type="submit">Save card</button></div></form></div>}
 		</div>
 	)
 }
