@@ -48,6 +48,14 @@ function App() {
 	}, [studyCard, studyCardIds.length, view])
 
 	useEffect(() => {
+		if (view !== 'study' || !studyCard) return
+		const frameId = window.requestAnimationFrame(() => {
+			document.querySelector<HTMLButtonElement>('.flashcard')?.focus()
+		})
+		return () => window.cancelAnimationFrame(frameId)
+	}, [studyCard, view])
+
+	useEffect(() => {
 		saveDecks(decks)
 	}, [decks])
 
@@ -64,11 +72,6 @@ function App() {
 		const onStudyKeyDown = (event: KeyboardEvent) => {
 			const currentStudy = studyState.current
 			if (currentStudy.view !== 'study' || !currentStudy.studyCard) return
-			const target = event.target as HTMLElement
-			if ((event.key === ' ' || event.key === 'Enter') && target.tagName !== 'BUTTON') {
-				event.preventDefault()
-				setIsRevealed((revealed) => !revealed)
-			}
 			if (event.key === 'ArrowRight') {
 				event.preventDefault()
 				setStudyIndex((index) => Math.min(currentStudy.studyCardCount - 1, index + 1))
@@ -235,10 +238,10 @@ function App() {
 						<span className="grid h-10 w-10 place-items-center rounded-xl bg-[#153e42] text-lg font-bold text-[#f7c873]">R</span>
 						<span><span className="block font-serif text-xl font-bold tracking-tight">Recall</span><span className="block text-xs uppercase tracking-[0.2em] text-[#6f7e7b]">Your mind, organised</span></span>
 					</button>
-					<nav aria-label="Primary navigation" className="flex items-center gap-2 rounded-full bg-[#edf3ef] p-1 text-sm font-semibold">
-						<button className={`rounded-full px-4 py-2 ${view === 'library' ? 'bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => setView('library')}>Library</button>
-						<button className={`rounded-full px-4 py-2 ${view === 'study' ? 'bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => startStudy()} disabled={!activeDeck?.cards.length}>Study</button>
-						<button className="theme-toggle rounded-full px-3 py-2 text-base" type="button" aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={isDarkTheme} onClick={() => setIsDarkTheme((isDark) => !isDark)}>{isDarkTheme ? '☀' : '☾'}</button>
+					<nav aria-label="Primary navigation" className="view-nav flex items-center gap-2 rounded-full bg-[#edf3ef] p-1 text-sm font-semibold">
+						<button className={`view-pill rounded-full px-4 py-2 ${view === 'library' ? 'view-pill-active bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => setView('library')}>Library</button>
+						<button className={`view-pill rounded-full px-4 py-2 ${view === 'study' ? 'view-pill-active bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => startStudy()} disabled={!activeDeck?.cards.length}>Study</button>
+						<button className="theme-toggle rounded-full px-3 py-2 text-base" type="button" aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={isDarkTheme} onKeyDown={(event) => { if (event.key === ' ') event.preventDefault() }} onClick={() => setIsDarkTheme((isDark) => !isDark)}>{isDarkTheme ? '☀' : '☾'}</button>
 					</nav>
 				</div>
 			</header>
