@@ -140,3 +140,24 @@
 		transition-timing-function: linear;
 	}
 }
+
+@media (max-width: 639px) {
+	.flashcard-scene,
+	.flashcard,
+	.flashcard-inner,
+	.flashcard-face {
+		height: min(360px, calc(100svh - 14rem));
+		min-height: 280px;
+	}
+
+	.flashcard-face,
+	.app-shell article,
+	.app-shell [role="dialog"] {
+		overflow-wrap: anywhere;
+	}
+
+	.app-shell [role="dialog"] {
+		max-height: calc(100dvh - 2rem);
+		overflow-y: auto;
+	}
+}

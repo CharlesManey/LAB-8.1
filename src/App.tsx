@@ -271,24 +271,24 @@ function App() {
 
 	return (
 		<div className={`app-shell min-h-screen bg-[#f4f7f5] text-[#17232b] ${isDarkTheme ? 'dark-theme' : ''}`}>
-			<header className="border-b border-[#dbe5df] bg-[#fbfdfb]">
-				<div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-10">
-					<button className="flex items-center gap-3 text-left" onClick={() => setView('library')} aria-label="Go to library">
+			<header className="w-full border-b border-[#dbe5df] bg-[#fbfdfb]">
+				<div className="mx-auto flex w-full max-w-7xl min-w-0 items-center gap-3 px-4 py-4 sm:px-5 sm:py-5 lg:px-10">
+					<button className="flex min-w-0 flex-1 items-center gap-2 text-left sm:gap-3" onClick={() => setView('library')} aria-label="Go to library">
 						<span className="grid h-10 w-10 place-items-center rounded-xl bg-[#153e42] text-lg font-bold text-[#f7c873]">R</span>
-						<span><span className="block font-serif text-xl font-bold tracking-tight">Recall</span><span className="block text-xs uppercase tracking-[0.2em] text-[#6f7e7b]">Your mind, organised</span></span>
+						<span className="min-w-0"><span className="block font-serif text-lg font-bold tracking-tight sm:text-xl">Recall</span><span className="hidden text-xs uppercase tracking-[0.2em] text-[#6f7e7b] sm:block">Your mind, organised</span></span>
 					</button>
-					<nav aria-label="Primary navigation" className="view-nav flex items-center gap-2 rounded-full bg-[#edf3ef] p-1 text-sm font-semibold">
-						<button className={`view-pill rounded-full px-4 py-2 ${view === 'library' ? 'view-pill-active bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => setView('library')}>Library</button>
-						<button className={`view-pill rounded-full px-4 py-2 ${view === 'study' ? 'view-pill-active bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => startStudy()} disabled={!activeDeck?.cards.length}>Study</button>
-						<button className="theme-toggle rounded-full px-3 py-2 text-base" type="button" aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={isDarkTheme} onKeyDown={(event) => { if (event.key === ' ') event.preventDefault() }} onClick={() => setIsDarkTheme((isDark) => !isDark)}>{isDarkTheme ? '☀' : '☾'}</button>
+					<nav aria-label="Primary navigation" className="view-nav flex shrink-0 items-center gap-0.5 rounded-full bg-[#edf3ef] p-1 text-xs font-semibold sm:gap-2 sm:text-sm">
+						<button className={`view-pill rounded-full px-2.5 py-2 sm:px-4 ${view === 'library' ? 'view-pill-active bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => setView('library')}>Library</button>
+						<button className={`view-pill rounded-full px-2.5 py-2 sm:px-4 ${view === 'study' ? 'view-pill-active bg-white text-[#153e42] shadow-sm' : 'text-[#71807c]'}`} onClick={() => startStudy()} disabled={!activeDeck?.cards.length}>Study</button>
+						<button className="theme-toggle rounded-full px-2 py-2 text-base" type="button" aria-label={isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={isDarkTheme} onKeyDown={(event) => { if (event.key === ' ') event.preventDefault() }} onClick={() => setIsDarkTheme((isDark) => !isDark)}>{isDarkTheme ? '☀' : '☾'}</button>
 					</nav>
 				</div>
 			</header>
 
-			<main className="mx-auto grid max-w-7xl gap-8 px-5 py-8 lg:grid-cols-[255px_1fr] lg:px-10 lg:py-12">
-				<aside className="lg:border-r lg:border-[#dbe5df] lg:pr-7">
+			<main className="mx-auto grid w-full max-w-7xl min-w-0 gap-6 px-4 py-6 sm:gap-8 sm:px-5 sm:py-8 lg:grid-cols-[255px_1fr] lg:px-10 lg:py-12">
+				<aside className="min-w-0 lg:border-r lg:border-[#dbe5df] lg:pr-7">
 					<div className="mb-5 flex items-center justify-between"><h2 className="text-xs font-bold uppercase tracking-[0.18em] text-[#6f7e7b]">Your decks</h2><button className="rounded-lg bg-[#e9a23b] px-3 py-2 text-sm font-bold text-[#17232b] shadow-sm transition hover:bg-[#f2b65a]" onClick={openNewDeck}>+ New deck</button></div>
-					{decks.length === 0 ? <p className="rounded-xl border border-dashed border-[#c9d8d0] p-4 text-sm leading-6 text-[#71807c]">Your first deck is one click away.</p> : <div className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2">{decks.map((deck) => <button key={deck.id} onClick={() => selectDeck(deck.id)} className={`min-w-45 rounded-xl border p-4 text-left transition lg:w-full ${deck.id === activeDeckId ? 'border-[#153e42] bg-[#153e42] text-white shadow-md' : 'border-[#dbe5df] bg-white hover:border-[#99b4ac]'}`}><span className="block truncate font-bold">{deck.name}</span><span className={`mt-1 block text-xs ${deck.id === activeDeckId ? 'text-[#c5d9d0]' : 'text-[#71807c]'}`}>{deck.cards.length} {deck.cards.length === 1 ? 'card' : 'cards'}</span></button>)}</div>}
+					{decks.length === 0 ? <p className="rounded-xl border border-dashed border-[#c9d8d0] p-4 text-sm leading-6 text-[#71807c]">Your first deck is one click away.</p> : <div className="flex max-w-full gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2">{decks.map((deck) => <button key={deck.id} onClick={() => selectDeck(deck.id)} className={`min-w-40 max-w-[80vw] rounded-xl border p-4 text-left transition lg:w-full ${deck.id === activeDeckId ? 'border-[#153e42] bg-[#153e42] text-white shadow-md' : 'border-[#dbe5df] bg-white hover:border-[#99b4ac]'}`}><span className="block truncate font-bold">{deck.name}</span><span className={`mt-1 block text-xs ${deck.id === activeDeckId ? 'text-[#c5d9d0]' : 'text-[#71807c]'}`}>{deck.cards.length} {deck.cards.length === 1 ? 'card' : 'cards'}</span></button>)}</div>}
 				</aside>
 
 				<section aria-labelledby="page-title" className="min-w-0">
